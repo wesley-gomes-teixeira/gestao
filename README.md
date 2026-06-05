@@ -90,6 +90,12 @@ Veja o passo a passo completo em `DEPLOY_FLY.md`.
 
 A aplicacao agora tambem entrega um frontend estatico pelo proprio Express.
 
+No primeiro startup, o sistema garante um admin inicial:
+
+- `admin@exemplo.com` / `admin123`
+
+Em producao, troque `DEFAULT_ADMIN_PASSWORD` depois do primeiro acesso.
+
 - `GET /` - Interface web do sistema
 - `GET /styles.css` - Estilos da interface
 - `GET /app.js` - Cliente web que consome a API

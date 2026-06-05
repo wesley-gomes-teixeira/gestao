@@ -34,13 +34,23 @@ Rotas uteis:
 
 ## 4. Popular usuarios de teste
 
-Opcionalmente, abra o Shell do Web Service no Render e rode:
+O sistema cria automaticamente um admin inicial no startup:
+
+- `admin@exemplo.com` / `admin123`
+
+Troque essa senha depois do primeiro acesso. Voce tambem pode mudar os valores no Render antes do deploy usando:
+
+- `DEFAULT_ADMIN_EMAIL`
+- `DEFAULT_ADMIN_PASSWORD`
+- `DEFAULT_ADMIN_NAME`
+
+Opcionalmente, para criar tambem analista e usuario de teste, abra o Shell do Web Service no Render e rode:
 
 ```bash
 npm run seed
 ```
 
-Credenciais criadas:
+Credenciais adicionais criadas pelo seed:
 
 - `admin@exemplo.com` / `admin123`
 - `analista@exemplo.com` / `analista123`
