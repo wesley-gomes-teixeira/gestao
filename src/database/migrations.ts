@@ -5,12 +5,10 @@ export async function runMigrations() {
     console.log('Iniciando migrations...');
 
     // Criar extensão UUID
-    await query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
-
     // Tabela de usuários
     await query(`
       CREATE TABLE IF NOT EXISTS usuarios (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        id UUID PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         senha VARCHAR(255) NOT NULL,
         nome VARCHAR(255) NOT NULL,
@@ -24,7 +22,7 @@ export async function runMigrations() {
     // Tabela de chamados
     await query(`
       CREATE TABLE IF NOT EXISTS chamados (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        id UUID PRIMARY KEY,
         usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
         titulo VARCHAR(255) NOT NULL,
         descricao TEXT NOT NULL,
@@ -38,7 +36,7 @@ export async function runMigrations() {
     // Tabela de respostas dos chamados
     await query(`
       CREATE TABLE IF NOT EXISTS respostas_chamados (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        id UUID PRIMARY KEY,
         chamado_id UUID NOT NULL REFERENCES chamados(id) ON DELETE CASCADE,
         usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
         resposta TEXT NOT NULL,
@@ -49,7 +47,7 @@ export async function runMigrations() {
     // Tabela de itens para empréstimo
     await query(`
       CREATE TABLE IF NOT EXISTS itens (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        id UUID PRIMARY KEY,
         nome VARCHAR(255) NOT NULL,
         descricao TEXT,
         quantidade INT NOT NULL DEFAULT 0,
@@ -62,7 +60,7 @@ export async function runMigrations() {
     // Tabela de empréstimos
     await query(`
       CREATE TABLE IF NOT EXISTS emprestimos (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        id UUID PRIMARY KEY,
         usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
         item_id UUID NOT NULL REFERENCES itens(id) ON DELETE CASCADE,
         quantidade INT NOT NULL,

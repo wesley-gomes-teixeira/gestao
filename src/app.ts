@@ -47,11 +47,32 @@ app.use((req: Request, res: Response) => {
 // Error handler
 app.use(errorHandler);
 
+async function runMigrationsWithRetry(maxAttempts = 5, delayMs = 3000) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await runMigrations();
+      return;
+    } catch (error) {
+      const isLastAttempt = attempt === maxAttempts;
+      console.error(
+        `Erro ao executar migrations (tentativa ${attempt}/${maxAttempts})`,
+        error
+      );
+
+      if (isLastAttempt) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
 // Initialize server
 async function startServer() {
   try {
     // Run migrations
-    await runMigrations();
+    await runMigrationsWithRetry();
 
     const { port, host } = config;
     app.listen(port, host, () => {

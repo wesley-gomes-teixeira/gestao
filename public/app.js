@@ -44,8 +44,16 @@ async function api(path, options = {}) {
     headers,
   });
 
+  let data = null;
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch (error) {
+      data = { erro: text };
+    }
+  }
 
   if (!response.ok) {
     throw new Error(data?.erro || 'Nao foi possivel concluir a acao.');
@@ -55,11 +63,42 @@ async function api(path, options = {}) {
 }
 
 function formData(form) {
+  if (!form) {
+    return {};
+  }
+
   return Object.fromEntries(new FormData(form).entries());
+}
+
+function resetForm(form) {
+  if (form && typeof form.reset === 'function') {
+    form.reset();
+  }
+}
+
+async function withSubmitting(form, action) {
+  const submitButton = form?.querySelector?.('[type="submit"]');
+  const originalText = submitButton?.textContent;
+
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = 'Processando...';
+  }
+
+  try {
+    return await action();
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = originalText;
+    }
+  }
 }
 
 function showNotice(message, type = 'success') {
   const notice = qs('#notice');
+  if (!notice) return;
+
   notice.textContent = message;
   notice.classList.toggle('error', type === 'error');
   notice.classList.remove('hidden');
@@ -100,13 +139,13 @@ function setAuthTab(tab) {
   qsa('[data-auth-tab]').forEach((button) => {
     button.classList.toggle('active', button.dataset.authTab === tab);
   });
-  qs('#loginForm').classList.toggle('active', tab === 'login');
-  qs('#registerForm').classList.toggle('active', tab === 'register');
+  qs('#loginForm')?.classList.toggle('active', tab === 'login');
+  qs('#registerForm')?.classList.toggle('active', tab === 'register');
 }
 
 function showApp(authenticated) {
-  qs('#authView').classList.toggle('hidden', authenticated);
-  qs('#dashboardView').classList.toggle('hidden', !authenticated);
+  qs('#authView')?.classList.toggle('hidden', authenticated);
+  qs('#dashboardView')?.classList.toggle('hidden', !authenticated);
 }
 
 function applyRoleVisibility() {
@@ -122,10 +161,15 @@ function switchView(view) {
   qsa('.view').forEach((section) => {
     section.classList.toggle('active', section.id === view);
   });
-  qs('#pageTitle').textContent = qsa(`[data-view="${view}"]`)[0]?.textContent || 'Resumo';
+  const pageTitle = qs('#pageTitle');
+  if (pageTitle) {
+    pageTitle.textContent = qsa(`[data-view="${view}"]`)[0]?.textContent || 'Resumo';
+  }
 }
 
 function renderUser() {
+  if (!state.user) return;
+
   qs('#userName').textContent = state.user.nome;
   qs('#userEmail').textContent = state.user.email;
   qs('#userRole').textContent = roleLabels[state.user.role] || state.user.role;
@@ -229,6 +273,8 @@ function escapeHtml(value) {
 }
 
 async function loadData() {
+  if (!state.user) return;
+
   const ticketPath = canManageTickets() ? '/api/chamados/admin/todos' : '/api/chamados/meus';
   const requests = [
     api(ticketPath).then((data) => { state.tickets = data; }),
@@ -270,15 +316,26 @@ async function boot() {
   } catch (error) {
     localStorage.removeItem('gestao_token');
     state.token = null;
+    state.user = null;
     showApp(false);
+    showNotice('Sessao expirada. Entre novamente.', 'error');
   }
 }
 
 async function openTicket(id) {
   const ticket = await api(`/api/chamados/${id}`);
   const responses = ticket.respostas || [];
-  qs('#dialogTitle').textContent = ticket.titulo;
-  qs('#dialogBody').innerHTML = `
+  const dialog = qs('#ticketDialog');
+  const dialogTitle = qs('#dialogTitle');
+  const dialogBody = qs('#dialogBody');
+
+  if (!dialog || !dialogTitle || !dialogBody) {
+    showNotice('Nao foi possivel abrir os detalhes do chamado.', 'error');
+    return;
+  }
+
+  dialogTitle.textContent = ticket.titulo;
+  dialogBody.innerHTML = `
     <p>${escapeHtml(ticket.descricao)}</p>
     <div class="row-actions">
       <span class="pill status-${ticket.status}">${statusLabels[ticket.status]}</span>
@@ -300,20 +357,33 @@ async function openTicket(id) {
       <button class="primary-action" type="button" data-answer-ticket="${ticket.id}">Responder</button>
     ` : ''}
   `;
-  qs('#ticketDialog').showModal();
+
+  if (dialog.open) {
+    return;
+  }
+
+  if (typeof dialog.showModal === 'function') {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute('open', '');
+  }
 }
 
 async function login(event) {
   event.preventDefault();
+  const form = event.currentTarget;
+
   try {
-    const credentials = formData(event.currentTarget);
-    const data = await api('/api/usuarios/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
+    await withSubmitting(form, async () => {
+      const credentials = formData(form);
+      const data = await api('/api/usuarios/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      });
+      state.token = data.token;
+      localStorage.setItem('gestao_token', state.token);
+      await boot();
     });
-    state.token = data.token;
-    localStorage.setItem('gestao_token', state.token);
-    await boot();
     showNotice('Login realizado com sucesso.');
   } catch (error) {
     showNotice(error.message, 'error');
@@ -322,13 +392,17 @@ async function login(event) {
 
 async function register(event) {
   event.preventDefault();
+  const form = event.currentTarget;
+
   try {
-    await api('/api/usuarios/register', {
-      method: 'POST',
-      body: JSON.stringify(formData(event.currentTarget)),
+    await withSubmitting(form, async () => {
+      await api('/api/usuarios/register', {
+        method: 'POST',
+        body: JSON.stringify(formData(form)),
+      });
+      resetForm(form);
     });
     setAuthTab('login');
-    event.currentTarget.reset();
     showNotice('Conta criada. Entre com seu email e senha.');
   } catch (error) {
     showNotice(error.message, 'error');
@@ -337,13 +411,17 @@ async function register(event) {
 
 async function createTicket(event) {
   event.preventDefault();
+  const form = event.currentTarget;
+
   try {
-    await api('/api/chamados', {
-      method: 'POST',
-      body: JSON.stringify(formData(event.currentTarget)),
+    await withSubmitting(form, async () => {
+      await api('/api/chamados', {
+        method: 'POST',
+        body: JSON.stringify(formData(form)),
+      });
+      resetForm(form);
+      await loadData();
     });
-    event.currentTarget.reset();
-    await loadData();
     showNotice('Chamado aberto.');
   } catch (error) {
     showNotice(error.message, 'error');
@@ -352,16 +430,19 @@ async function createTicket(event) {
 
 async function createItem(event) {
   event.preventDefault();
-  const data = formData(event.currentTarget);
+  const form = event.currentTarget;
+  const data = formData(form);
   data.quantidade = Number(data.quantidade);
 
   try {
-    await api('/api/itens', {
-      method: 'POST',
-      body: JSON.stringify(data),
+    await withSubmitting(form, async () => {
+      await api('/api/itens', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      resetForm(form);
+      await loadData();
     });
-    event.currentTarget.reset();
-    await loadData();
     showNotice('Item adicionado.');
   } catch (error) {
     showNotice(error.message, 'error');
@@ -370,13 +451,17 @@ async function createItem(event) {
 
 async function createUser(event) {
   event.preventDefault();
+  const form = event.currentTarget;
+
   try {
-    await api('/api/usuarios', {
-      method: 'POST',
-      body: JSON.stringify(formData(event.currentTarget)),
+    await withSubmitting(form, async () => {
+      await api('/api/usuarios', {
+        method: 'POST',
+        body: JSON.stringify(formData(form)),
+      });
+      resetForm(form);
+      await loadData();
     });
-    event.currentTarget.reset();
-    await loadData();
     showNotice('Usuario criado.');
   } catch (error) {
     showNotice(error.message, 'error');
@@ -425,14 +510,14 @@ qsa('.nav-item').forEach((button) => {
   button.addEventListener('click', () => switchView(button.dataset.view));
 });
 
-qs('#loginForm').addEventListener('submit', login);
-qs('#registerForm').addEventListener('submit', register);
-qs('#ticketForm').addEventListener('submit', createTicket);
-qs('#itemForm').addEventListener('submit', createItem);
-qs('#userForm').addEventListener('submit', createUser);
-qs('#ticketFilter').addEventListener('change', renderTickets);
+qs('#loginForm')?.addEventListener('submit', login);
+qs('#registerForm')?.addEventListener('submit', register);
+qs('#ticketForm')?.addEventListener('submit', createTicket);
+qs('#itemForm')?.addEventListener('submit', createItem);
+qs('#userForm')?.addEventListener('submit', createUser);
+qs('#ticketFilter')?.addEventListener('change', renderTickets);
 
-qs('#logoutButton').addEventListener('click', () => {
+qs('#logoutButton')?.addEventListener('click', () => {
   localStorage.removeItem('gestao_token');
   state.token = null;
   state.user = null;
@@ -441,10 +526,13 @@ qs('#logoutButton').addEventListener('click', () => {
 });
 
 document.addEventListener('click', async (event) => {
-  const openButton = event.target.closest('[data-open-ticket]');
-  const statusButton = event.target.closest('[data-status-ticket]');
-  const loanButton = event.target.closest('[data-loan-item]');
-  const answerButton = event.target.closest('[data-answer-ticket]');
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+
+  const openButton = target.closest('[data-open-ticket]');
+  const statusButton = target.closest('[data-status-ticket]');
+  const loanButton = target.closest('[data-loan-item]');
+  const answerButton = target.closest('[data-answer-ticket]');
 
   try {
     if (openButton) await openTicket(openButton.dataset.openTicket);
