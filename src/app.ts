@@ -53,9 +53,9 @@ async function startServer() {
     // Run migrations
     await runMigrations();
 
-    const port = config.port;
-    app.listen(port, () => {
-      console.log(`✓ Servidor rodando em http://localhost:${port}`);
+    const { port, host } = config;
+    app.listen(port, host, () => {
+      console.log(`✓ Servidor rodando em http://${host}:${port}`);
       console.log(`✓ Ambiente: ${config.nodeEnv}`);
     });
   } catch (error) {

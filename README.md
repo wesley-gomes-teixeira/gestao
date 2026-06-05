@@ -55,6 +55,37 @@ docker-compose logs -f app
 docker-compose down
 ```
 
+## Deploy no Render
+
+O projeto inclui `render.yaml` para publicar a API, o frontend e o PostgreSQL no Render via Blueprint.
+
+Resumo:
+
+1. Envie o projeto para um repositorio GitHub.
+2. No Render, crie `New` > `Blueprint`.
+3. Selecione o repositorio.
+4. Confirme o `render.yaml`.
+5. Ao terminar, acesse a URL `onrender.com` gerada.
+
+Veja o passo a passo completo em `DEPLOY_RENDER.md`.
+
+## Deploy no Fly.io
+
+O projeto tambem inclui `fly.toml` para deploy no Fly.io.
+
+Se os logs mostrarem `ECONNREFUSED 127.0.0.1:5432`, anexe um Postgres ao app para criar `DATABASE_URL`.
+
+Resumo:
+
+```bash
+fly secrets set JWT_SECRET="troque-por-um-segredo-forte" -a gestao-ubsb9a
+fly postgres create --name gestao-ubsb9a-db --region gru
+fly postgres attach gestao-ubsb9a-db --app gestao-ubsb9a
+fly deploy -a gestao-ubsb9a
+```
+
+Veja o passo a passo completo em `DEPLOY_FLY.md`.
+
 ## Frontend
 
 A aplicacao agora tambem entrega um frontend estatico pelo proprio Express.
