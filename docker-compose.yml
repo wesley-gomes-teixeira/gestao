@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gestao_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-gestao_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-gestao_password}
+      POSTGRES_DB: ${DB_NAME:-gestao_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-gestao_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gestao_network
+
+  app:
+    build: .
+    container_name: gestao_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: ${PORT:-3000}
+      NODE_ENV: ${NODE_ENV:-development}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-gestao_user}
+      DB_PASSWORD: ${DB_PASSWORD:-gestao_password}
+      DB_NAME: ${DB_NAME:-gestao_db}
+      JWT_SECRET: ${JWT_SECRET:-seu_secret_jwt_super_seguro}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - gestao_network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+
+networks:
+  gestao_network:
+    driver: bridge

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestao de Suporte</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="notice hidden" id="notice"></div>
+    <main class="app-shell">
+      <section class="auth-view" id="authView">
+        <div class="brand-panel">
+          <span class="brand-mark">GS</span>
+          <div>
+            <p class="eyebrow">Gestao de suporte</p>
+            <h1>Central para chamados, itens e emprestimos.</h1>
+            <p class="muted">
+              Entre para acompanhar solicitacoes, controlar recursos e responder demandas conforme seu perfil.
+            </p>
+          </div>
+        </div>
+
+        <div class="auth-card">
+          <div class="tabs" role="tablist" aria-label="Acesso">
+            <button class="tab-button active" data-auth-tab="login" type="button">Entrar</button>
+            <button class="tab-button" data-auth-tab="register" type="button">Cadastrar</button>
+          </div>
+
+          <form class="auth-form active" id="loginForm">
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label>
+              Senha
+              <input name="password" type="password" autocomplete="current-password" required />
+            </label>
+            <button class="primary-action" type="submit">Entrar</button>
+          </form>
+
+          <form class="auth-form" id="registerForm">
+            <label>
+              Nome
+              <input name="nome" type="text" autocomplete="name" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label>
+              Senha
+              <input name="password" type="password" autocomplete="new-password" required minlength="6" />
+            </label>
+            <button class="primary-action" type="submit">Criar conta</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="dashboard hidden" id="dashboardView">
+        <aside class="sidebar">
+          <div class="sidebar-header">
+            <span class="brand-mark small">GS</span>
+            <div>
+              <strong>Suporte</strong>
+              <span id="userRole">Usuario</span>
+            </div>
+          </div>
+          <nav class="nav-list" aria-label="Principal">
+            <button class="nav-item active" data-view="overview" type="button">Resumo</button>
+            <button class="nav-item" data-view="tickets" type="button">Chamados</button>
+            <button class="nav-item" data-view="items" type="button">Itens</button>
+            <button class="nav-item restricted" data-view="users" type="button">Usuarios</button>
+          </nav>
+          <button class="ghost-action" id="logoutButton" type="button">Sair</button>
+        </aside>
+
+        <section class="workspace">
+          <header class="topbar">
+            <div>
+              <p class="eyebrow">Painel</p>
+              <h2 id="pageTitle">Resumo</h2>
+            </div>
+            <div class="user-chip">
+              <span id="userInitials">U</span>
+              <div>
+                <strong id="userName">Usuario</strong>
+                <small id="userEmail">usuario@email.com</small>
+              </div>
+            </div>
+          </header>
+
+          <section class="view active" id="overview">
+            <div class="metric-grid">
+              <article class="metric-card">
+                <span>Chamados abertos</span>
+                <strong id="metricOpenTickets">0</strong>
+              </article>
+              <article class="metric-card">
+                <span>Em andamento</span>
+                <strong id="metricProgressTickets">0</strong>
+              </article>
+              <article class="metric-card">
+                <span>Itens disponiveis</span>
+                <strong id="metricAvailableItems">0</strong>
+              </article>
+              <article class="metric-card">
+                <span>Emprestimos ativos</span>
+                <strong id="metricLoans">0</strong>
+              </article>
+            </div>
+
+            <div class="split-layout">
+              <section class="panel">
+                <div class="panel-heading">
+                  <h3>Chamados recentes</h3>
+                </div>
+                <div class="list" id="recentTickets"></div>
+              </section>
+              <section class="panel">
+                <div class="panel-heading">
+                  <h3>Estoque rapido</h3>
+                </div>
+                <div class="list" id="recentItems"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="view" id="tickets">
+            <div class="split-layout">
+              <form class="panel form-panel" id="ticketForm">
+                <div class="panel-heading">
+                  <h3>Novo chamado</h3>
+                </div>
+                <label>
+                  Titulo
+                  <input name="titulo" required />
+                </label>
+                <label>
+                  Prioridade
+                  <select name="prioridade">
+                    <option value="baixa">Baixa</option>
+                    <option value="media" selected>Media</option>
+                    <option value="alta">Alta</option>
+                  </select>
+                </label>
+                <label>
+                  Descricao
+                  <textarea name="descricao" rows="5" required></textarea>
+                </label>
+                <button class="primary-action" type="submit">Abrir chamado</button>
+              </form>
+
+              <section class="panel">
+                <div class="panel-heading">
+                  <h3>Fila de chamados</h3>
+                  <select id="ticketFilter" aria-label="Filtrar chamados">
+                    <option value="todos">Todos</option>
+                    <option value="aberto">Abertos</option>
+                    <option value="em_andamento">Em andamento</option>
+                    <option value="resolvido">Resolvidos</option>
+                    <option value="fechado">Fechados</option>
+                  </select>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Titulo</th>
+                        <th>Status</th>
+                        <th>Prioridade</th>
+                        <th>Data</th>
+                        <th class="restricted analyst-only">Acoes</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ticketsTable"></tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <section class="view" id="items">
+            <div class="split-layout">
+              <form class="panel form-panel restricted admin-only" id="itemForm">
+                <div class="panel-heading">
+                  <h3>Novo item</h3>
+                </div>
+                <label>
+                  Nome
+                  <input name="nome" required />
+                </label>
+                <label>
+                  Quantidade
+                  <input name="quantidade" type="number" min="1" value="1" required />
+                </label>
+                <label>
+                  Descricao
+                  <textarea name="descricao" rows="4"></textarea>
+                </label>
+                <button class="primary-action" type="submit">Adicionar item</button>
+              </form>
+
+              <section class="panel">
+                <div class="panel-heading">
+                  <h3>Itens para emprestimo</h3>
+                </div>
+                <div class="item-grid" id="itemsGrid"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="view" id="users">
+            <div class="split-layout">
+              <form class="panel form-panel" id="userForm">
+                <div class="panel-heading">
+                  <h3>Novo usuario</h3>
+                </div>
+                <label>
+                  Nome
+                  <input name="nome" required />
+                </label>
+                <label>
+                  Email
+                  <input name="email" type="email" required />
+                </label>
+                <label>
+                  Senha
+                  <input name="password" type="password" minlength="6" required />
+                </label>
+                <label>
+                  Perfil
+                  <select name="role">
+                    <option value="usuario">Usuario</option>
+                    <option value="analista">Analista</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </label>
+                <button class="primary-action" type="submit">Criar usuario</button>
+              </form>
+              <section class="panel">
+                <div class="panel-heading">
+                  <h3>Equipe</h3>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Perfil</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="usersTable"></tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="ticketDialog">
+      <form method="dialog" class="dialog-content">
+        <header>
+          <div>
+            <p class="eyebrow">Chamado</p>
+            <h3 id="dialogTitle">Detalhes</h3>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Fechar" type="submit">x</button>
+        </header>
+        <div id="dialogBody"></div>
+      </form>
+    </dialog>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
