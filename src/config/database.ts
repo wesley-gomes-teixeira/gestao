@@ -1,15 +1,20 @@
 import { Pool, PoolClient } from 'pg';
 import dotenv from 'dotenv';
+import { config } from './env';
 
 dotenv.config();
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  user: process.env.DB_USER || 'gestao_user',
-  password: process.env.DB_PASSWORD || 'gestao_password',
-  database: process.env.DB_NAME || 'gestao_db',
-});
+const pool = new Pool(
+  config.database.connectionString
+    ? { connectionString: config.database.connectionString }
+    : {
+        host: config.database.host,
+        port: config.database.port,
+        user: config.database.user,
+        password: config.database.password,
+        database: config.database.database,
+      }
+);
 
 pool.on('error', (err) => {
   console.error('Erro inesperado no pool de conexão:', err);

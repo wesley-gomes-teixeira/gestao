@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Sistema de Gestão de Suporte com Autenticação JWT",
   "main": "dist/app.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "ts-node src/app.ts",
     "build": "tsc",
