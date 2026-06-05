@@ -5,6 +5,7 @@ const state = {
   items: [],
   users: [],
   loans: [],
+  adminDialog: null,
 };
 
 const roleLabels = {
@@ -73,6 +74,28 @@ function formData(form) {
 function resetForm(form) {
   if (form && typeof form.reset === 'function') {
     form.reset();
+  }
+}
+
+function closeDialog(dialog) {
+  if (!dialog) return;
+
+  if (typeof dialog.close === 'function') {
+    dialog.close();
+  } else {
+    dialog.removeAttribute('open');
+  }
+}
+
+function openDialog(dialog) {
+  if (!dialog) return;
+
+  if (dialog.open) return;
+
+  if (typeof dialog.showModal === 'function') {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute('open', '');
   }
 }
 
@@ -219,9 +242,11 @@ function renderTickets() {
       <td>${formatDate(ticket.criado_em)}</td>
       <td class="analyst-only ${canManageTickets() ? '' : 'hidden'}">
         <div class="row-actions">
-          <button class="secondary-action" type="button" data-open-ticket="${ticket.id}">Ver</button>
-          <button class="secondary-action" type="button" data-status-ticket="${ticket.id}" data-status="em_andamento">Andar</button>
-          <button class="secondary-action" type="button" data-status-ticket="${ticket.id}" data-status="resolvido">Resolver</button>
+          <button class="secondary-action compact-action" type="button" data-open-ticket="${ticket.id}">Ver</button>
+          <button class="secondary-action compact-action" type="button" data-edit-ticket="${ticket.id}">Editar</button>
+          <button class="secondary-action compact-action" type="button" data-status-ticket="${ticket.id}" data-status="em_andamento">Andar</button>
+          <button class="secondary-action compact-action" type="button" data-status-ticket="${ticket.id}" data-status="resolvido">Resolver</button>
+          ${isAdmin() ? `<button class="danger-action compact-action" type="button" data-delete-ticket="${ticket.id}">Excluir</button>` : ''}
         </div>
       </td>
     </tr>
@@ -239,9 +264,15 @@ function renderItems() {
         <span style="width: ${Math.round(stockRatio(item) * 100)}%"></span>
       </div>
       <span>${Number(item.quantidade_disponivel)} de ${Number(item.quantidade)} disponiveis</span>
-      <button class="secondary-action" type="button" data-loan-item="${item.id}" ${Number(item.quantidade_disponivel) <= 0 ? 'disabled' : ''}>
-        Emprestar
-      </button>
+      <div class="row-actions">
+        <button class="secondary-action compact-action" type="button" data-loan-item="${item.id}" ${Number(item.quantidade_disponivel) <= 0 ? 'disabled' : ''}>
+          Emprestar
+        </button>
+        ${isAdmin() ? `
+          <button class="secondary-action compact-action" type="button" data-edit-item="${item.id}">Editar</button>
+          <button class="danger-action compact-action" type="button" data-delete-item="${item.id}">Excluir</button>
+        ` : ''}
+      </div>
     </article>
   `).join('') || '<p class="empty-state">Nenhum item cadastrado.</p>';
 }
@@ -253,8 +284,14 @@ function renderUsers() {
       <td>${escapeHtml(user.email)}</td>
       <td>${roleLabels[user.role] || user.role}</td>
       <td><span class="pill ${user.ativo ? 'ok' : ''}">${user.ativo ? 'Ativo' : 'Inativo'}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="secondary-action compact-action" type="button" data-edit-user="${user.id}">Editar</button>
+          <button class="danger-action compact-action" type="button" data-delete-user="${user.id}" ${user.id === state.user?.id ? 'disabled' : ''}>Excluir</button>
+        </div>
+      </td>
     </tr>
-  `).join('') || '<tr><td colspan="4" class="empty-state">Nenhum usuario encontrado.</td></tr>';
+  `).join('') || '<tr><td colspan="5" class="empty-state">Nenhum usuario encontrado.</td></tr>';
 }
 
 function stockRatio(item) {
@@ -358,15 +395,176 @@ async function openTicket(id) {
     ` : ''}
   `;
 
-  if (dialog.open) {
+  openDialog(dialog);
+}
+
+function getTicket(id) {
+  return state.tickets.find((ticket) => ticket.id === id);
+}
+
+function getItem(id) {
+  return state.items.find((item) => item.id === id);
+}
+
+function getUser(id) {
+  return state.users.find((user) => user.id === id);
+}
+
+function setAdminDialog({ title, eyebrow, fields, onSubmit }) {
+  const dialog = qs('#adminDialog');
+  const form = qs('#adminDialogForm');
+  const titleElement = qs('#adminDialogTitle');
+  const eyebrowElement = qs('#adminDialogEyebrow');
+  const fieldsElement = qs('#adminDialogFields');
+
+  if (!dialog || !form || !titleElement || !eyebrowElement || !fieldsElement) {
+    showNotice('Nao foi possivel abrir o formulario administrativo.', 'error');
     return;
   }
 
-  if (typeof dialog.showModal === 'function') {
-    dialog.showModal();
-  } else {
-    dialog.setAttribute('open', '');
-  }
+  titleElement.textContent = title;
+  eyebrowElement.textContent = eyebrow;
+  fieldsElement.innerHTML = fields;
+  state.adminDialog = { onSubmit };
+  openDialog(dialog);
+}
+
+function editTicket(id) {
+  const ticket = getTicket(id);
+  if (!ticket || !canManageTickets()) return;
+
+  setAdminDialog({
+    eyebrow: 'Chamado',
+    title: 'Editar chamado',
+    fields: `
+      <label>
+        Titulo
+        <input name="titulo" value="${escapeHtml(ticket.titulo)}" required />
+      </label>
+      <label>
+        Status
+        <select name="status">
+          ${Object.entries(statusLabels).map(([value, label]) => `
+            <option value="${value}" ${ticket.status === value ? 'selected' : ''}>${label}</option>
+          `).join('')}
+        </select>
+      </label>
+      <label>
+        Prioridade
+        <select name="prioridade">
+          ${Object.entries(priorityLabels).map(([value, label]) => `
+            <option value="${value}" ${ticket.prioridade === value ? 'selected' : ''}>${label}</option>
+          `).join('')}
+        </select>
+      </label>
+      <label>
+        Descricao
+        <textarea name="descricao" rows="5" required>${escapeHtml(ticket.descricao || '')}</textarea>
+      </label>
+    `,
+    onSubmit: async (data) => {
+      await api(`/api/chamados/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      await loadData();
+      showNotice('Chamado atualizado.');
+    },
+  });
+}
+
+function editItem(id) {
+  const item = getItem(id);
+  if (!item || !isAdmin()) return;
+
+  setAdminDialog({
+    eyebrow: 'Item',
+    title: 'Editar item',
+    fields: `
+      <label>
+        Nome
+        <input name="nome" value="${escapeHtml(item.nome)}" required />
+      </label>
+      <label>
+        Quantidade total
+        <input name="quantidade" type="number" min="0" value="${Number(item.quantidade)}" required />
+      </label>
+      <label>
+        Disponivel
+        <input name="quantidade_disponivel" type="number" min="0" value="${Number(item.quantidade_disponivel)}" required />
+      </label>
+      <label>
+        Descricao
+        <textarea name="descricao" rows="4">${escapeHtml(item.descricao || '')}</textarea>
+      </label>
+    `,
+    onSubmit: async (data) => {
+      data.quantidade = Number(data.quantidade);
+      data.quantidade_disponivel = Number(data.quantidade_disponivel);
+
+      if (data.quantidade_disponivel > data.quantidade) {
+        throw new Error('Disponivel nao pode ser maior que a quantidade total.');
+      }
+
+      await api(`/api/itens/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      await loadData();
+      showNotice('Item atualizado.');
+    },
+  });
+}
+
+function editUser(id) {
+  const user = getUser(id);
+  if (!user || !isAdmin()) return;
+
+  setAdminDialog({
+    eyebrow: 'Usuario',
+    title: 'Editar usuario',
+    fields: `
+      <label>
+        Nome
+        <input name="nome" value="${escapeHtml(user.nome)}" required />
+      </label>
+      <label>
+        Email
+        <input name="email" type="email" value="${escapeHtml(user.email)}" required />
+      </label>
+      <label>
+        Perfil
+        <select name="role">
+          ${Object.entries(roleLabels).map(([value, label]) => `
+            <option value="${value}" ${user.role === value ? 'selected' : ''}>${label}</option>
+          `).join('')}
+        </select>
+      </label>
+      <label>
+        Status
+        <select name="ativo">
+          <option value="true" ${user.ativo ? 'selected' : ''}>Ativo</option>
+          <option value="false" ${!user.ativo ? 'selected' : ''}>Inativo</option>
+        </select>
+      </label>
+    `,
+    onSubmit: async (data) => {
+      data.ativo = data.ativo === 'true';
+      await api(`/api/usuarios/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      await loadData();
+
+      if (state.user?.id === id) {
+        state.user = await api('/api/usuarios/me');
+        renderUser();
+        applyRoleVisibility();
+      }
+
+      showNotice('Usuario atualizado.');
+    },
+  });
 }
 
 async function login(event) {
@@ -477,6 +675,37 @@ async function updateTicketStatus(id, status) {
   showNotice('Chamado atualizado.');
 }
 
+async function deleteTicket(id) {
+  if (!isAdmin() || !window.confirm('Excluir este chamado?')) return;
+
+  await api(`/api/chamados/${id}`, { method: 'DELETE' });
+  await loadData();
+  showNotice('Chamado excluido.');
+}
+
+async function deleteItem(id) {
+  if (!isAdmin() || !window.confirm('Excluir este item?')) return;
+
+  await api(`/api/itens/${id}`, { method: 'DELETE' });
+  await loadData();
+  showNotice('Item excluido.');
+}
+
+async function deleteUser(id) {
+  if (!isAdmin()) return;
+
+  if (id === state.user?.id) {
+    showNotice('Voce nao pode excluir seu proprio usuario logado.', 'error');
+    return;
+  }
+
+  if (!window.confirm('Excluir este usuario?')) return;
+
+  await api(`/api/usuarios/${id}`, { method: 'DELETE' });
+  await loadData();
+  showNotice('Usuario excluido.');
+}
+
 async function loanItem(id) {
   const quantity = Number(window.prompt('Quantidade para emprestar:', '1'));
   if (!quantity || quantity < 1) return;
@@ -525,6 +754,28 @@ qs('#logoutButton')?.addEventListener('click', () => {
   showApp(false);
 });
 
+qsa('[data-close-admin-dialog]').forEach((button) => {
+  button.addEventListener('click', () => closeDialog(qs('#adminDialog')));
+});
+
+qs('#adminDialogForm')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const currentDialog = state.adminDialog;
+
+  if (!currentDialog?.onSubmit) return;
+
+  try {
+    await withSubmitting(form, async () => {
+      await currentDialog.onSubmit(formData(form));
+    });
+    closeDialog(qs('#adminDialog'));
+    state.adminDialog = null;
+  } catch (error) {
+    showNotice(error.message, 'error');
+  }
+});
+
 document.addEventListener('click', async (event) => {
   const target = event.target instanceof Element ? event.target : null;
   if (!target) return;
@@ -533,12 +784,24 @@ document.addEventListener('click', async (event) => {
   const statusButton = target.closest('[data-status-ticket]');
   const loanButton = target.closest('[data-loan-item]');
   const answerButton = target.closest('[data-answer-ticket]');
+  const editTicketButton = target.closest('[data-edit-ticket]');
+  const deleteTicketButton = target.closest('[data-delete-ticket]');
+  const editItemButton = target.closest('[data-edit-item]');
+  const deleteItemButton = target.closest('[data-delete-item]');
+  const editUserButton = target.closest('[data-edit-user]');
+  const deleteUserButton = target.closest('[data-delete-user]');
 
   try {
     if (openButton) await openTicket(openButton.dataset.openTicket);
     if (statusButton) await updateTicketStatus(statusButton.dataset.statusTicket, statusButton.dataset.status);
     if (loanButton) await loanItem(loanButton.dataset.loanItem);
     if (answerButton) await answerTicket(answerButton.dataset.answerTicket);
+    if (editTicketButton) editTicket(editTicketButton.dataset.editTicket);
+    if (deleteTicketButton) await deleteTicket(deleteTicketButton.dataset.deleteTicket);
+    if (editItemButton) editItem(editItemButton.dataset.editItem);
+    if (deleteItemButton) await deleteItem(deleteItemButton.dataset.deleteItem);
+    if (editUserButton) editUser(editUserButton.dataset.editUser);
+    if (deleteUserButton) await deleteUser(deleteUserButton.dataset.deleteUser);
   } catch (error) {
     showNotice(error.message, 'error');
   }

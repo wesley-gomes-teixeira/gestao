@@ -58,22 +58,22 @@ export class ChamadoService {
     const values: any[] = [id];
     let paramIndex = 2;
 
-    if (data.titulo) {
+    if (data.titulo !== undefined) {
       updates.push(`titulo = $${paramIndex++}`);
       values.push(data.titulo);
     }
 
-    if (data.descricao) {
+    if (data.descricao !== undefined) {
       updates.push(`descricao = $${paramIndex++}`);
       values.push(data.descricao);
     }
 
-    if (data.status) {
+    if (data.status !== undefined) {
       updates.push(`status = $${paramIndex++}`);
       values.push(data.status);
     }
 
-    if (data.prioridade) {
+    if (data.prioridade !== undefined) {
       updates.push(`prioridade = $${paramIndex++}`);
       values.push(data.prioridade);
     }

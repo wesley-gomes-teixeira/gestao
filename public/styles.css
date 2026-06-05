@@ -245,6 +245,15 @@ textarea:focus {
   color: var(--danger);
 }
 
+.danger-action:hover {
+  background: rgba(180, 35, 24, 0.16);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .icon-button {
   width: 40px;
   padding: 0;
@@ -486,6 +495,12 @@ th {
   gap: 8px;
 }
 
+.compact-action {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 0.82rem;
+}
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -561,6 +576,18 @@ dialog::backdrop {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 18px;
+}
+
+.dialog-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 .response-list {

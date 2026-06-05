@@ -250,6 +250,7 @@
                         <th>Email</th>
                         <th>Perfil</th>
                         <th>Status</th>
+                        <th>Acoes</th>
                       </tr>
                     </thead>
                     <tbody id="usersTable"></tbody>
@@ -272,6 +273,23 @@
           <button class="icon-button" value="cancel" aria-label="Fechar" type="submit">x</button>
         </header>
         <div id="dialogBody"></div>
+      </form>
+    </dialog>
+
+    <dialog id="adminDialog">
+      <form class="dialog-content" id="adminDialogForm">
+        <header>
+          <div>
+            <p class="eyebrow" id="adminDialogEyebrow">Administracao</p>
+            <h3 id="adminDialogTitle">Editar</h3>
+          </div>
+          <button class="icon-button" data-close-admin-dialog aria-label="Fechar" type="button">x</button>
+        </header>
+        <div class="dialog-grid" id="adminDialogFields"></div>
+        <footer class="dialog-actions">
+          <button class="secondary-action" data-close-admin-dialog type="button">Cancelar</button>
+          <button class="primary-action" type="submit">Salvar</button>
+        </footer>
       </form>
     </dialog>
 

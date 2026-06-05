@@ -44,12 +44,12 @@ export class ItemService {
     const values: any[] = [id];
     let paramIndex = 2;
 
-    if (data.nome) {
+    if (data.nome !== undefined) {
       updates.push(`nome = $${paramIndex++}`);
       values.push(data.nome);
     }
 
-    if (data.descricao) {
+    if (data.descricao !== undefined) {
       updates.push(`descricao = $${paramIndex++}`);
       values.push(data.descricao);
     }
