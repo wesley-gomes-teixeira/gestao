@@ -423,6 +423,10 @@ button:disabled {
   align-items: start;
 }
 
+.split-layout.single-panel {
+  grid-template-columns: 1fr;
+}
+
 .panel {
   min-width: 0;
   padding: 18px;

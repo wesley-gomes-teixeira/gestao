@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { IAuthRequest } from '../types';
+import { IAuthRequest, UserRole } from '../types';
 import chamadoService from '../services/chamadoService';
 
 export class ChamadoController {
@@ -7,6 +7,11 @@ export class ChamadoController {
     try {
       if (!req.user) {
         res.status(401).json({ erro: 'Usuário não autenticado' });
+        return;
+      }
+
+      if (req.user.role !== UserRole.USUARIO) {
+        res.status(403).json({ erro: 'Apenas usuarios podem abrir chamados' });
         return;
       }
 

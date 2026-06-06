@@ -188,7 +188,9 @@ function showApp(authenticated) {
 function applyRoleVisibility() {
   qsa('.admin-only').forEach((element) => element.classList.toggle('hidden', !isAdmin()));
   qsa('.analyst-only').forEach((element) => element.classList.toggle('hidden', !canManageTickets()));
+  qsa('.user-only').forEach((element) => element.classList.toggle('hidden', state.user?.role !== 'usuario'));
   qsa('[data-view="users"]').forEach((element) => element.classList.toggle('hidden', !isAdmin()));
+  qs('#ticketsLayout')?.classList.toggle('single-panel', state.user?.role !== 'usuario');
 }
 
 function getViewFromPath() {
