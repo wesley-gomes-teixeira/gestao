@@ -27,6 +27,17 @@ const priorityLabels = {
   alta: 'Alta',
 };
 
+const viewRoutes = {
+  overview: '/resumo',
+  tickets: '/chamados',
+  items: '/itens',
+  users: '/usuarios',
+};
+
+const routeViews = Object.fromEntries(
+  Object.entries(viewRoutes).map(([view, route]) => [route, view])
+);
+
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
 
@@ -177,16 +188,33 @@ function applyRoleVisibility() {
   qsa('[data-view="users"]').forEach((element) => element.classList.toggle('hidden', !isAdmin()));
 }
 
-function switchView(view) {
+function getViewFromPath() {
+  return routeViews[window.location.pathname] || 'overview';
+}
+
+function canAccessView(view) {
+  return view !== 'users' || isAdmin();
+}
+
+function switchView(view, options = {}) {
+  const nextView = canAccessView(view) ? view : 'overview';
+
   qsa('.nav-item').forEach((button) => {
-    button.classList.toggle('active', button.dataset.view === view);
+    button.classList.toggle('active', button.dataset.view === nextView);
   });
   qsa('.view').forEach((section) => {
-    section.classList.toggle('active', section.id === view);
+    section.classList.toggle('active', section.id === nextView);
   });
   const pageTitle = qs('#pageTitle');
   if (pageTitle) {
-    pageTitle.textContent = qsa(`[data-view="${view}"]`)[0]?.textContent || 'Resumo';
+    pageTitle.textContent = qsa(`[data-view="${nextView}"]`)[0]?.textContent || 'Resumo';
+  }
+
+  if (options.updateUrl !== false) {
+    const route = viewRoutes[nextView] || viewRoutes.overview;
+    if (window.location.pathname !== route) {
+      window.history.pushState({ view: nextView }, '', route);
+    }
   }
 }
 
@@ -414,7 +442,7 @@ async function boot() {
     showApp(true);
     renderUser();
     applyRoleVisibility();
-    switchView('overview');
+    switchView(getViewFromPath(), { updateUrl: false });
     await loadData();
   } catch (error) {
     localStorage.removeItem('gestao_token');
@@ -873,7 +901,8 @@ qs('#logoutButton')?.addEventListener('click', () => {
   localStorage.removeItem('gestao_token');
   state.token = null;
   state.user = null;
-  switchView('overview');
+  switchView('overview', { updateUrl: false });
+  window.history.pushState({ view: 'overview' }, '', '/');
   showApp(false);
 });
 
@@ -952,6 +981,11 @@ document.addEventListener('change', async (event) => {
     showNotice(error.message, 'error');
     renderTickets();
   }
+});
+
+window.addEventListener('popstate', () => {
+  if (!state.user) return;
+  switchView(getViewFromPath(), { updateUrl: false });
 });
 
 boot();

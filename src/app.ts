@@ -40,6 +40,10 @@ app.use('/api/usuarios', userRoutes);
 app.use('/api/chamados', chamadoRoutes);
 app.use('/api/itens', itemRoutes);
 
+app.get(['/resumo', '/chamados', '/itens', '/usuarios'], (req: Request, res: Response) => {
+  res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
+});
+
 // 404 handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({ erro: 'Rota não encontrada' });
