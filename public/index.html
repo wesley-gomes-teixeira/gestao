@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestao de Suporte</title>
+    <title>Gestão de Suporte</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -13,17 +13,17 @@
         <div class="brand-panel">
           <span class="brand-mark">GS</span>
           <div>
-            <p class="eyebrow">Gestao de suporte</p>
+            <p class="eyebrow">Gestão de suporte</p>
             <h1>Central para chamados, itens e emprestimos.</h1>
             <p class="muted">
-              Entre para acompanhar solicitacoes, controlar recursos e responder demandas conforme seu perfil.
+              Entre para acompanhar solicitações, controlar recursos e responder demandas conforme seu perfil.
             </p>
           </div>
         </div>
 
         <div class="auth-card">
           <div class="tabs" role="tablist" aria-label="Acesso">
-            <button class="tab-button active" data-auth-tab="login" type="button">Entrar</button>
+            <button class="tab-button active" data-auth-tab="login" type="button">Login</button>
             <button class="tab-button" data-auth-tab="register" type="button">Cadastrar</button>
           </div>
 
@@ -63,14 +63,14 @@
             <span class="brand-mark small">GS</span>
             <div>
               <strong>Suporte</strong>
-              <span id="userRole">Usuario</span>
+              <span id="userRole">Usuário</span>
             </div>
           </div>
           <nav class="nav-list" aria-label="Principal">
             <button class="nav-item active" data-view="overview" type="button">Resumo</button>
             <button class="nav-item" data-view="tickets" type="button">Chamados</button>
             <button class="nav-item" data-view="items" type="button">Itens</button>
-            <button class="nav-item restricted" data-view="users" type="button">Usuarios</button>
+            <button class="nav-item restricted" data-view="users" type="button">Usuários</button>
           </nav>
           <button class="ghost-action" id="logoutButton" type="button">Sair</button>
         </aside>
@@ -84,7 +84,7 @@
             <div class="user-chip">
               <span id="userInitials">U</span>
               <div>
-                <strong id="userName">Usuario</strong>
+                <strong id="userName">Usuário</strong>
                 <small id="userEmail">usuario@email.com</small>
               </div>
             </div>
@@ -171,7 +171,7 @@
                         <th>Status</th>
                         <th>Prioridade</th>
                         <th>Data</th>
-                        <th>Acoes</th>
+                        <th>Ações</th>
                       </tr>
                     </thead>
                     <tbody id="ticketsTable"></tbody>
@@ -196,7 +196,7 @@
                   <input name="quantidade" type="number" min="1" value="1" required />
                 </label>
                 <label>
-                  Descricao
+                  Descrição
                   <textarea name="descricao" rows="4"></textarea>
                 </label>
                 <button class="primary-action" type="submit">Adicionar item</button>
@@ -228,7 +228,7 @@
                       <th>Qtd.</th>
                       <th>Status</th>
                       <th>Emprestado em</th>
-                      <th>Acoes</th>
+                      <th>Ações</th>
                     </tr>
                   </thead>
                   <tbody id="loansTable"></tbody>
@@ -241,7 +241,7 @@
             <div class="split-layout">
               <form class="panel form-panel" id="userForm">
                 <div class="panel-heading">
-                  <h3>Novo usuario</h3>
+                  <h3>Novo usuário</h3>
                 </div>
                 <label>
                   Nome
@@ -258,12 +258,12 @@
                 <label>
                   Perfil
                   <select name="role">
-                    <option value="usuario">Usuario</option>
+                    <option value="usuario">Usuário</option>
                     <option value="analista">Analista</option>
                     <option value="admin">Admin</option>
                   </select>
                 </label>
-                <button class="primary-action" type="submit">Criar usuario</button>
+                <button class="primary-action" type="submit">Criar usuário</button>
               </form>
               <section class="panel">
                 <div class="panel-heading">
@@ -277,7 +277,7 @@
                         <th>Email</th>
                         <th>Perfil</th>
                         <th>Status</th>
-                        <th>Acoes</th>
+                        <th>Ações</th>
                       </tr>
                     </thead>
                     <tbody id="usersTable"></tbody>
@@ -307,7 +307,7 @@
       <form class="dialog-content" id="adminDialogForm">
         <header>
           <div>
-            <p class="eyebrow" id="adminDialogEyebrow">Administracao</p>
+            <p class="eyebrow" id="adminDialogEyebrow">Administração</p>
             <h3 id="adminDialogTitle">Editar</h3>
           </div>
           <button class="icon-button" data-close-admin-dialog aria-label="Fechar" type="button">x</button>
