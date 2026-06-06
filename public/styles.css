@@ -223,6 +223,8 @@ textarea:focus {
   border-radius: 6px;
   padding: 0 14px;
   font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .primary-action {
@@ -492,13 +494,33 @@ th {
 .row-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: max-content;
 }
 
 .compact-action {
   min-height: 32px;
-  padding: 0 10px;
+  min-width: 72px;
+  padding: 0 12px;
   font-size: 0.82rem;
+}
+
+td .row-actions {
+  max-width: 330px;
+}
+
+.item-card .row-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.item-card .compact-action {
+  width: 100%;
+  min-width: 0;
 }
 
 .pill {
@@ -586,7 +608,7 @@ dialog::backdrop {
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
   margin-top: 18px;
 }
 
@@ -633,6 +655,32 @@ dialog::backdrop {
   .list-row {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .panel-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .panel-heading select {
+    max-width: none;
+  }
+
+  .row-actions,
+  td .row-actions,
+  .item-card .row-actions,
+  .dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .compact-action,
+  .row-actions > button,
+  .dialog-actions > button {
+    width: 100%;
+    min-width: 0;
   }
 
   .metric-grid {
