@@ -263,18 +263,26 @@ function renderTickets() {
 
 function renderItems() {
   qs('#itemsGrid').innerHTML = state.items.map((item) => `
-    <article class="item-card">
+    <article class="item-card ${Number(item.quantidade_disponivel) <= 0 ? 'is-unavailable' : ''}">
       <div>
-        <strong>${escapeHtml(item.nome)}</strong>
+        <div class="item-card-heading">
+          <strong>${escapeHtml(item.nome)}</strong>
+          <span class="pill ${Number(item.quantidade_disponivel) > 0 ? 'ok' : 'high'}">
+            ${Number(item.quantidade_disponivel) > 0 ? 'Disponivel' : 'Indisponivel'}
+          </span>
+        </div>
         <span>${escapeHtml(item.descricao || 'Sem descricao')}</span>
       </div>
       <div class="stock-bar" aria-label="Disponibilidade">
         <span style="width: ${Math.round(stockRatio(item) * 100)}%"></span>
       </div>
-      <span>${Number(item.quantidade_disponivel)} de ${Number(item.quantidade)} disponiveis</span>
+      <div class="item-stock-summary">
+        <strong>${Number(item.quantidade_disponivel)}</strong>
+        <span>de ${Number(item.quantidade)} disponiveis</span>
+      </div>
       <div class="row-actions">
         <button class="secondary-action compact-action" type="button" data-loan-item="${item.id}" ${Number(item.quantidade_disponivel) <= 0 ? 'disabled' : ''}>
-          Emprestar
+          ${canManageTickets() ? 'Emprestar' : 'Solicitar'}
         </button>
         ${isAdmin() ? `
           <button class="secondary-action compact-action" type="button" data-edit-item="${item.id}">Editar</button>
@@ -306,6 +314,13 @@ function renderLoans() {
   const loansTable = qs('#loansTable');
   if (!loansTable) return;
 
+  const loansTitle = qs('#loansPanelTitle');
+  if (loansTitle) {
+    loansTitle.textContent = canManageTickets()
+      ? 'Emprestimos ativos e historico'
+      : 'Meus emprestimos';
+  }
+
   const filter = qs('#loanFilter')?.value || 'ativos';
   const loans = state.loans.filter((loan) => {
     if (filter === 'ativos') return !loan.devolvido;
@@ -330,7 +345,9 @@ function renderLoans() {
       <td>${formatDate(loan.data_emprestimo)}</td>
       <td>
         <div class="row-actions">
-          ${loan.devolvido ? `
+          ${!canManageTickets() ? `
+            <span class="empty-state">-</span>
+          ` : loan.devolvido ? `
             <span class="empty-state">Sem acoes</span>
           ` : `
             <button class="secondary-action compact-action" type="button" data-return-loan="${loan.id}" data-return-item="${loan.item_id}">
@@ -367,17 +384,16 @@ async function loadData() {
     api('/api/itens').then((data) => { state.items = data; }),
   ];
 
-  if (canManageTickets()) {
-    requests.push(api('/api/itens/listar-emprestimos').then((data) => { state.loans = data; }));
-  } else {
-    state.loans = [];
-  }
-
   if (isAdmin()) {
     requests.push(api('/api/usuarios').then((data) => { state.users = data; }));
   } else {
     state.users = [];
   }
+
+  const loansPath = canManageTickets()
+    ? '/api/itens/listar-emprestimos'
+    : `/api/itens/listar-emprestimos?usuarioId=${encodeURIComponent(state.user.id)}`;
+  requests.push(api(loansPath).then((data) => { state.loans = data; }));
 
   await Promise.all(requests);
   renderOverview();

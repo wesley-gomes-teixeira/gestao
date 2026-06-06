@@ -599,7 +599,37 @@ td .row-actions {
 
 .item-card {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  align-content: start;
+}
+
+.item-card.is-unavailable {
+  background: #fbfbfa;
+}
+
+.item-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.item-card-heading strong {
+  margin-bottom: 0;
+}
+
+.item-stock-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.item-stock-summary strong {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.35rem;
 }
 
 .stock-bar {
