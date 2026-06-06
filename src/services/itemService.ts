@@ -136,16 +136,21 @@ export class ItemService {
   }
 
   async listEmprestimos(usuarioId?: string): Promise<any[]> {
-    let query_str = `SELECT id, usuario_id, item_id, quantidade, data_emprestimo, data_devolucao, devolvido
-                    FROM emprestimos`;
+    let query_str = `SELECT e.id, e.usuario_id, e.item_id, e.quantidade,
+                            e.data_emprestimo, e.data_devolucao, e.devolvido,
+                            u.nome as usuario_nome, u.email as usuario_email,
+                            i.nome as item_nome
+                    FROM emprestimos e
+                    JOIN usuarios u ON u.id = e.usuario_id
+                    JOIN itens i ON i.id = e.item_id`;
     const params: any[] = [];
 
     if (usuarioId) {
-      query_str += ` WHERE usuario_id = $1`;
+      query_str += ` WHERE e.usuario_id = $1`;
       params.push(usuarioId);
     }
 
-    query_str += ` ORDER BY data_emprestimo DESC`;
+    query_str += ` ORDER BY e.data_emprestimo DESC`;
 
     const result = await query(query_str, params);
     return result.rows;

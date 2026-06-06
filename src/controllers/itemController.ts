@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { IAuthRequest } from '../types';
+import { IAuthRequest, UserRole } from '../types';
 import itemService from '../services/itemService';
 
 export class ItemController {
@@ -86,17 +86,22 @@ export class ItemController {
         return;
       }
 
-      const { itemId, quantidade } = req.body;
+      const { itemId, quantidade, usuarioId } = req.body;
 
       if (!itemId || !quantidade) {
         res.status(400).json({ erro: 'Item ID e quantidade são obrigatórios' });
         return;
       }
 
+      const canAssignUser = [UserRole.ADMIN, UserRole.ANALISTA].includes(
+        req.user.role as UserRole
+      );
+      const targetUserId = canAssignUser && usuarioId ? usuarioId : req.user.id;
+
       const emprestimo = await itemService.emprestar(
         itemId,
-        req.user.id,
-        quantidade
+        targetUserId,
+        Number(quantidade)
       );
 
       res.status(201).json(emprestimo);

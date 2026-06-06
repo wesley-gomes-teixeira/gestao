@@ -524,6 +524,63 @@ function editItem(id) {
   });
 }
 
+function loanItem(id) {
+  const item = getItem(id);
+  if (!item) return;
+
+  const maxQuantity = Number(item.quantidade_disponivel || 0);
+
+  if (maxQuantity <= 0) {
+    showNotice('Item sem quantidade disponivel.', 'error');
+    return;
+  }
+
+  const userOptions = state.users.map((user) => `
+    <option value="${user.id}" ${user.id === state.user?.id ? 'selected' : ''}>
+      ${escapeHtml(user.nome)} (${escapeHtml(user.email)})
+    </option>
+  `).join('');
+
+  setAdminDialog({
+    eyebrow: 'Emprestimo',
+    title: `Emprestar ${item.nome}`,
+    fields: `
+      ${canManageTickets() && state.users.length ? `
+        <label>
+          Usuario responsavel
+          <select name="usuarioId" required>
+            ${userOptions}
+          </select>
+        </label>
+      ` : `
+        <p class="empty-state">Este item sera associado ao seu usuario logado.</p>
+      `}
+      <label>
+        Quantidade
+        <input name="quantidade" type="number" min="1" max="${maxQuantity}" value="1" required />
+      </label>
+      <p class="empty-state">${maxQuantity} unidade(s) disponivel(is).</p>
+    `,
+    onSubmit: async (data) => {
+      const payload = {
+        itemId: id,
+        quantidade: Number(data.quantidade),
+      };
+
+      if (data.usuarioId) {
+        payload.usuarioId = data.usuarioId;
+      }
+
+      await api('/api/itens/emprestar', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      await loadData();
+      showNotice('Emprestimo registrado e associado ao usuario.');
+    },
+  });
+}
+
 function editUser(id) {
   const user = getUser(id);
   if (!user || !isAdmin()) return;
@@ -712,18 +769,6 @@ async function deleteUser(id) {
   await api(`/api/usuarios/${id}`, { method: 'DELETE' });
   await loadData();
   showNotice('Usuario excluido.');
-}
-
-async function loanItem(id) {
-  const quantity = Number(window.prompt('Quantidade para emprestar:', '1'));
-  if (!quantity || quantity < 1) return;
-
-  await api('/api/itens/emprestar', {
-    method: 'POST',
-    body: JSON.stringify({ itemId: id, quantidade: quantity }),
-  });
-  await loadData();
-  showNotice('Emprestimo registrado.');
 }
 
 async function answerTicket(id) {
