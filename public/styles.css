@@ -511,6 +511,37 @@ td .row-actions {
   max-width: 330px;
 }
 
+.ticket-actions {
+  display: grid;
+  gap: 10px;
+  min-width: 260px;
+}
+
+.ticket-primary-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(72px, 1fr));
+  gap: 6px;
+}
+
+.ticket-primary-actions .compact-action {
+  width: 100%;
+  min-width: 0;
+}
+
+.status-control {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.status-control select {
+  min-height: 34px;
+  padding: 6px 9px;
+  font-size: 0.84rem;
+}
+
 .item-card .row-actions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -668,6 +699,7 @@ dialog::backdrop {
 
   .row-actions,
   td .row-actions,
+  .ticket-primary-actions,
   .item-card .row-actions,
   .dialog-actions {
     display: grid;
@@ -678,6 +710,7 @@ dialog::backdrop {
 
   .compact-action,
   .row-actions > button,
+  .ticket-primary-actions > button,
   .dialog-actions > button {
     width: 100%;
     min-width: 0;

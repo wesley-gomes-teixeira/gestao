@@ -241,12 +241,20 @@ function renderTickets() {
       <td><span class="pill ${ticket.prioridade === 'alta' ? 'high' : ''}">${priorityLabels[ticket.prioridade]}</span></td>
       <td>${formatDate(ticket.criado_em)}</td>
       <td class="analyst-only ${canManageTickets() ? '' : 'hidden'}">
-        <div class="row-actions">
-          <button class="secondary-action compact-action" type="button" data-open-ticket="${ticket.id}">Ver</button>
-          <button class="secondary-action compact-action" type="button" data-edit-ticket="${ticket.id}">Editar</button>
-          <button class="secondary-action compact-action" type="button" data-status-ticket="${ticket.id}" data-status="em_andamento">Andar</button>
-          <button class="secondary-action compact-action" type="button" data-status-ticket="${ticket.id}" data-status="resolvido">Resolver</button>
-          ${isAdmin() ? `<button class="danger-action compact-action" type="button" data-delete-ticket="${ticket.id}">Excluir</button>` : ''}
+        <div class="ticket-actions">
+          <div class="ticket-primary-actions">
+            <button class="secondary-action compact-action" type="button" data-open-ticket="${ticket.id}">Ver</button>
+            <button class="secondary-action compact-action" type="button" data-edit-ticket="${ticket.id}">Editar</button>
+            ${isAdmin() ? `<button class="danger-action compact-action" type="button" data-delete-ticket="${ticket.id}">Excluir</button>` : ''}
+          </div>
+          <label class="status-control">
+            <span>Status</span>
+            <select data-ticket-status-select="${ticket.id}" aria-label="Atualizar status de ${escapeHtml(ticket.titulo)}">
+              ${Object.entries(statusLabels).map(([value, label]) => `
+                <option value="${value}" ${ticket.status === value ? 'selected' : ''}>${label}</option>
+              `).join('')}
+            </select>
+          </label>
         </div>
       </td>
     </tr>
@@ -804,6 +812,23 @@ document.addEventListener('click', async (event) => {
     if (deleteUserButton) await deleteUser(deleteUserButton.dataset.deleteUser);
   } catch (error) {
     showNotice(error.message, 'error');
+  }
+});
+
+document.addEventListener('change', async (event) => {
+  const target = event.target instanceof Element ? event.target : null;
+  const statusSelect = target?.closest('[data-ticket-status-select]');
+
+  if (!statusSelect) return;
+
+  try {
+    await updateTicketStatus(
+      statusSelect.dataset.ticketStatusSelect,
+      statusSelect.value
+    );
+  } catch (error) {
+    showNotice(error.message, 'error');
+    renderTickets();
   }
 });
 
