@@ -6,6 +6,9 @@ const state = {
   users: [],
   loans: [],
   adminDialog: null,
+  isSyncing: false,
+  pendingSync: false,
+  syncTimer: null,
 };
 
 const roleLabels = {
@@ -431,6 +434,55 @@ async function loadData() {
   renderLoans();
 }
 
+async function syncData({ silent = false } = {}) {
+  if (!state.user) return;
+
+  if (state.isSyncing) {
+    state.pendingSync = true;
+    return;
+  }
+
+  state.isSyncing = true;
+
+  try {
+    await loadData();
+  } catch (error) {
+    if (String(error.message || '').toLowerCase().includes('token')) {
+      localStorage.removeItem('gestao_token');
+      state.token = null;
+      state.user = null;
+      stopAutoSync();
+      showApp(false);
+      showNotice('Sessao expirada. Entre novamente.', 'error');
+      return;
+    }
+
+    if (!silent) {
+      showNotice(error.message, 'error');
+    }
+  } finally {
+    state.isSyncing = false;
+
+    if (state.pendingSync) {
+      state.pendingSync = false;
+      await syncData({ silent: true });
+    }
+  }
+}
+
+function startAutoSync() {
+  window.clearInterval(state.syncTimer);
+  state.syncTimer = window.setInterval(() => {
+    if (document.hidden || !state.user) return;
+    syncData({ silent: true });
+  }, 15000);
+}
+
+function stopAutoSync() {
+  window.clearInterval(state.syncTimer);
+  state.syncTimer = null;
+}
+
 async function boot() {
   if (!state.token) {
     showApp(false);
@@ -443,11 +495,13 @@ async function boot() {
     renderUser();
     applyRoleVisibility();
     switchView(getViewFromPath(), { updateUrl: false });
-    await loadData();
+    await syncData({ silent: true });
+    startAutoSync();
   } catch (error) {
     localStorage.removeItem('gestao_token');
     state.token = null;
     state.user = null;
+    stopAutoSync();
     showApp(false);
     showNotice('Sessao expirada. Entre novamente.', 'error');
   }
@@ -561,7 +615,7 @@ function editTicket(id) {
         method: 'PUT',
         body: JSON.stringify(data),
       });
-      await loadData();
+      await syncData({ silent: true });
       showNotice('Chamado atualizado.');
     },
   });
@@ -604,7 +658,7 @@ function editItem(id) {
         method: 'PUT',
         body: JSON.stringify(data),
       });
-      await loadData();
+      await syncData({ silent: true });
       showNotice('Item atualizado.');
     },
   });
@@ -661,7 +715,7 @@ function loanItem(id) {
         method: 'POST',
         body: JSON.stringify(payload),
       });
-      await loadData();
+      await syncData({ silent: true });
       showNotice('Emprestimo registrado e associado ao usuario.');
     },
   });
@@ -705,7 +759,7 @@ function editUser(id) {
         method: 'PUT',
         body: JSON.stringify(data),
       });
-      await loadData();
+      await syncData({ silent: true });
 
       if (state.user?.id === id) {
         state.user = await api('/api/usuarios/me');
@@ -769,7 +823,7 @@ async function createTicket(event) {
         body: JSON.stringify(formData(form)),
       });
       resetForm(form);
-      await loadData();
+      await syncData({ silent: true });
     });
     showNotice('Chamado aberto.');
   } catch (error) {
@@ -790,7 +844,7 @@ async function createItem(event) {
         body: JSON.stringify(data),
       });
       resetForm(form);
-      await loadData();
+      await syncData({ silent: true });
     });
     showNotice('Item adicionado.');
   } catch (error) {
@@ -809,7 +863,7 @@ async function createUser(event) {
         body: JSON.stringify(formData(form)),
       });
       resetForm(form);
-      await loadData();
+      await syncData({ silent: true });
     });
     showNotice('Usuario criado.');
   } catch (error) {
@@ -822,7 +876,7 @@ async function updateTicketStatus(id, status) {
     method: 'PUT',
     body: JSON.stringify({ status }),
   });
-  await loadData();
+  await syncData({ silent: true });
   showNotice('Chamado atualizado.');
 }
 
@@ -830,7 +884,7 @@ async function deleteTicket(id) {
   if (!isAdmin() || !window.confirm('Excluir este chamado?')) return;
 
   await api(`/api/chamados/${id}`, { method: 'DELETE' });
-  await loadData();
+  await syncData({ silent: true });
   showNotice('Chamado excluido.');
 }
 
@@ -838,7 +892,7 @@ async function deleteItem(id) {
   if (!isAdmin() || !window.confirm('Excluir este item?')) return;
 
   await api(`/api/itens/${id}`, { method: 'DELETE' });
-  await loadData();
+  await syncData({ silent: true });
   showNotice('Item excluido.');
 }
 
@@ -853,7 +907,7 @@ async function deleteUser(id) {
   if (!window.confirm('Excluir este usuario?')) return;
 
   await api(`/api/usuarios/${id}`, { method: 'DELETE' });
-  await loadData();
+  await syncData({ silent: true });
   showNotice('Usuario excluido.');
 }
 
@@ -864,7 +918,7 @@ async function returnLoan(emprestimoId, itemId) {
     method: 'POST',
     body: JSON.stringify({ emprestimoId, itemId }),
   });
-  await loadData();
+  await syncData({ silent: true });
   showNotice('Item devolvido.');
 }
 
@@ -876,7 +930,7 @@ async function answerTicket(id) {
     method: 'POST',
     body: JSON.stringify({ resposta }),
   });
-  await loadData();
+  await syncData({ silent: true });
   await openTicket(id);
   showNotice('Resposta adicionada.');
 }
@@ -901,6 +955,7 @@ qs('#logoutButton')?.addEventListener('click', () => {
   localStorage.removeItem('gestao_token');
   state.token = null;
   state.user = null;
+  stopAutoSync();
   switchView('overview', { updateUrl: false });
   window.history.pushState({ view: 'overview' }, '', '/');
   showApp(false);
@@ -986,6 +1041,12 @@ document.addEventListener('change', async (event) => {
 window.addEventListener('popstate', () => {
   if (!state.user) return;
   switchView(getViewFromPath(), { updateUrl: false });
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && state.user) {
+    syncData({ silent: true });
+  }
 });
 
 boot();
