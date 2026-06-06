@@ -154,7 +154,7 @@ docker-compose exec app npm run seed
 ```
 
 **Credenciais:**
-- Admin: admin@exemplo.com / admin123
+- Admin: wesley@gmail.com / Wesley@1.
 - Analista: analista@exemplo.com / analista123
 - Usuário: usuario@exemplo.com / usuario123
 

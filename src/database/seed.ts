@@ -6,7 +6,7 @@ export async function seedDatabase() {
     console.log('Iniciando seeding do banco de dados...');
 
     // Criar usuários de exemplo
-    const adminEmail = 'admin@exemplo.com';
+    const adminEmail = 'wesley@gmail.com';
     const analistaEmail = 'analista@exemplo.com';
     const usuarioEmail = 'usuario@exemplo.com';
 
@@ -15,8 +15,8 @@ export async function seedDatabase() {
     if (!admin) {
       admin = await userService.createUser(
         adminEmail,
-        'admin123',
-        'Admin',
+        'Wesley@1.',
+        'Wesley',
         UserRole.ADMIN
       );
       console.log('✓ Admin criado:', adminEmail);
@@ -48,7 +48,7 @@ export async function seedDatabase() {
 
     console.log('\n✓ Seeding concluído!');
     console.log('\nCredenciais de teste:');
-    console.log('Admin:', adminEmail, '/ admin123');
+    console.log('Admin:', adminEmail, '/ Wesley@1.');
     console.log('Analista:', analistaEmail, '/ analista123');
     console.log('Usuário:', usuarioEmail, '/ usuario123');
   } catch (error) {

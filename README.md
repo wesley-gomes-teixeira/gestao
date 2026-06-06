@@ -92,7 +92,7 @@ A aplicacao agora tambem entrega um frontend estatico pelo proprio Express.
 
 No primeiro startup, o sistema garante um admin inicial:
 
-- `admin@exemplo.com` / `admin123`
+- `wesley@gmail.com` / `Wesley@1.`
 
 Em producao, troque `DEFAULT_ADMIN_PASSWORD` depois do primeiro acesso.
 

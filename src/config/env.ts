@@ -19,9 +19,9 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || 'seu_secret_jwt_super_seguro',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   defaultAdmin: {
-    email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@exemplo.com',
-    password: process.env.DEFAULT_ADMIN_PASSWORD || 'admin123',
-    nome: process.env.DEFAULT_ADMIN_NAME || 'Admin',
+    email: process.env.DEFAULT_ADMIN_EMAIL || 'wesley@gmail.com',
+    password: process.env.DEFAULT_ADMIN_PASSWORD || 'Wesley@1.',
+    nome: process.env.DEFAULT_ADMIN_NAME || 'Wesley',
   },
   database: {
     connectionString: databaseUrl,

@@ -36,7 +36,7 @@ Rotas uteis:
 
 O sistema cria automaticamente um admin inicial no startup:
 
-- `admin@exemplo.com` / `admin123`
+- `wesley@gmail.com` / `Wesley@1.`
 
 Troque essa senha depois do primeiro acesso. Voce tambem pode mudar os valores no Render antes do deploy usando:
 
@@ -52,7 +52,7 @@ npm run seed
 
 Credenciais adicionais criadas pelo seed:
 
-- `admin@exemplo.com` / `admin123`
+- `wesley@gmail.com` / `Wesley@1.`
 - `analista@exemplo.com` / `analista123`
 - `usuario@exemplo.com` / `usuario123`
 

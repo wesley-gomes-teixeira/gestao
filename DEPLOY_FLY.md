@@ -75,6 +75,6 @@ npm run seed
 
 Credenciais criadas:
 
-- `admin@exemplo.com` / `admin123`
+- `wesley@gmail.com` / `Wesley@1.`
 - `analista@exemplo.com` / `analista123`
 - `usuario@exemplo.com` / `usuario123`
