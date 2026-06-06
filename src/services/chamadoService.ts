@@ -33,8 +33,14 @@ export class ChamadoService {
 
   async listChamadosDoUsuario(usuarioId: string): Promise<IChamado[]> {
     const result = await query(
-      `SELECT id, usuario_id, titulo, descricao, status, prioridade, criado_em, atualizado_em
-       FROM chamados WHERE usuario_id = $1 ORDER BY criado_em DESC`,
+      `SELECT c.id, c.usuario_id, c.titulo, c.descricao, c.status, c.prioridade,
+              c.criado_em, c.atualizado_em, COUNT(r.id)::int as respostas_count,
+              MAX(r.criado_em) as ultima_resposta_em
+       FROM chamados c
+       LEFT JOIN respostas_chamados r ON r.chamado_id = c.id
+       WHERE c.usuario_id = $1
+       GROUP BY c.id
+       ORDER BY c.criado_em DESC`,
       [usuarioId]
     );
 
@@ -43,8 +49,13 @@ export class ChamadoService {
 
   async listTodosChamados(): Promise<IChamado[]> {
     const result = await query(
-      `SELECT id, usuario_id, titulo, descricao, status, prioridade, criado_em, atualizado_em
-       FROM chamados ORDER BY criado_em DESC`
+      `SELECT c.id, c.usuario_id, c.titulo, c.descricao, c.status, c.prioridade,
+              c.criado_em, c.atualizado_em, COUNT(r.id)::int as respostas_count,
+              MAX(r.criado_em) as ultima_resposta_em
+       FROM chamados c
+       LEFT JOIN respostas_chamados r ON r.chamado_id = c.id
+       GROUP BY c.id
+       ORDER BY c.criado_em DESC`
     );
 
     return result.rows;
@@ -117,8 +128,12 @@ export class ChamadoService {
 
   async listRespostasChamado(chamadoId: string): Promise<IRespostaChamado[]> {
     const result = await query(
-      `SELECT id, chamado_id, usuario_id, resposta, criado_em
-       FROM respostas_chamados WHERE chamado_id = $1 ORDER BY criado_em ASC`,
+      `SELECT r.id, r.chamado_id, r.usuario_id, r.resposta, r.criado_em,
+              u.nome as usuario_nome, u.email as usuario_email, u.tipo as usuario_role
+       FROM respostas_chamados r
+       JOIN usuarios u ON u.id = r.usuario_id
+       WHERE r.chamado_id = $1
+       ORDER BY r.criado_em ASC`,
       [chamadoId]
     );
 

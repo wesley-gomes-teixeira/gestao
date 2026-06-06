@@ -267,25 +267,31 @@ function renderTickets() {
         <strong>${escapeHtml(ticket.titulo)}</strong>
         <br />
         <small>${escapeHtml(ticket.descricao || '').slice(0, 90)}</small>
+        ${Number(ticket.respostas_count || 0) > 0 ? `
+          <br />
+          <span class="pill ok">${Number(ticket.respostas_count)} resposta(s)</span>
+        ` : ''}
       </td>
       <td><span class="pill status-${ticket.status}">${statusLabels[ticket.status]}</span></td>
       <td><span class="pill ${ticket.prioridade === 'alta' ? 'high' : ''}">${priorityLabels[ticket.prioridade]}</span></td>
       <td>${formatDate(ticket.criado_em)}</td>
-      <td class="analyst-only ${canManageTickets() ? '' : 'hidden'}">
+      <td>
         <div class="ticket-actions">
           <div class="ticket-primary-actions">
             <button class="secondary-action compact-action" type="button" data-open-ticket="${ticket.id}">Ver</button>
-            <button class="secondary-action compact-action" type="button" data-edit-ticket="${ticket.id}">Editar</button>
+            ${canManageTickets() ? `<button class="secondary-action compact-action" type="button" data-edit-ticket="${ticket.id}">Editar</button>` : ''}
             ${isAdmin() ? `<button class="danger-action compact-action" type="button" data-delete-ticket="${ticket.id}">Excluir</button>` : ''}
           </div>
-          <label class="status-control">
-            <span>Status</span>
-            <select data-ticket-status-select="${ticket.id}" aria-label="Atualizar status de ${escapeHtml(ticket.titulo)}">
-              ${Object.entries(statusLabels).map(([value, label]) => `
-                <option value="${value}" ${ticket.status === value ? 'selected' : ''}>${label}</option>
-              `).join('')}
-            </select>
-          </label>
+          ${canManageTickets() ? `
+            <label class="status-control">
+              <span>Status</span>
+              <select data-ticket-status-select="${ticket.id}" aria-label="Atualizar status de ${escapeHtml(ticket.titulo)}">
+                ${Object.entries(statusLabels).map(([value, label]) => `
+                  <option value="${value}" ${ticket.status === value ? 'selected' : ''}>${label}</option>
+                `).join('')}
+              </select>
+            </label>
+          ` : ''}
         </div>
       </td>
     </tr>
@@ -529,8 +535,11 @@ async function openTicket(id) {
     <div class="response-list">
       ${responses.map((item) => `
         <div class="response-item">
+          <div class="response-meta">
+            <strong>${escapeHtml(item.usuario_nome || 'Atendimento')}</strong>
+            <span>${roleLabels[item.usuario_role] || item.usuario_role || 'Equipe'} · ${formatDate(item.criado_em)}</span>
+          </div>
           <p>${escapeHtml(item.resposta)}</p>
-          <small>${formatDate(item.criado_em)}</small>
         </div>
       `).join('') || '<p class="empty-state">Sem respostas ainda.</p>'}
     </div>
