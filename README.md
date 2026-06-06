@@ -96,6 +96,8 @@ No primeiro startup, o sistema garante um admin inicial:
 
 Em producao, troque `DEFAULT_ADMIN_PASSWORD` depois do primeiro acesso.
 
+O primeiro startup tambem cria itens iniciais para emprestimo, como notebooks, monitores, teclados, mouses, headsets, webcams, projetores e cabos HDMI.
+
 - `GET /` - Interface web do sistema
 - `GET /styles.css` - Estilos da interface
 - `GET /app.js` - Cliente web que consome a API

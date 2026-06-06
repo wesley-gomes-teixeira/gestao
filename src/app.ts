@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { config } from './config/env';
 import { runMigrations } from './database/migrations';
-import { ensureDefaultAdmin } from './database/bootstrap';
+import { ensureDefaultAdmin, ensureDefaultLoanItems } from './database/bootstrap';
 import userRoutes from './routes/users';
 import chamadoRoutes from './routes/chamados';
 import itemRoutes from './routes/itens';
@@ -75,6 +75,7 @@ async function startServer() {
     // Run migrations
     await runMigrationsWithRetry();
     await ensureDefaultAdmin();
+    await ensureDefaultLoanItems();
 
     const { port, host } = config;
     app.listen(port, host, () => {

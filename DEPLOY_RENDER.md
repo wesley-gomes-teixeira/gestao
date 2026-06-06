@@ -44,6 +44,8 @@ Troque essa senha depois do primeiro acesso. Voce tambem pode mudar os valores n
 - `DEFAULT_ADMIN_PASSWORD`
 - `DEFAULT_ADMIN_NAME`
 
+O startup tambem cria itens iniciais para emprestimo, sem duplicar itens ja existentes.
+
 Opcionalmente, para criar tambem analista e usuario de teste, abra o Shell do Web Service no Render e rode:
 
 ```bash

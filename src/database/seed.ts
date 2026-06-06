@@ -1,5 +1,6 @@
 import userService from '../services/userService';
 import { UserRole } from '../types';
+import { ensureDefaultLoanItems } from './bootstrap';
 
 export async function seedDatabase() {
   try {
@@ -51,6 +52,8 @@ export async function seedDatabase() {
     console.log('Admin:', adminEmail, '/ Wesley@1.');
     console.log('Analista:', analistaEmail, '/ analista123');
     console.log('Usuário:', usuarioEmail, '/ usuario123');
+    await ensureDefaultLoanItems();
+    console.log('\nItens de emprestimo criados/verificados.');
   } catch (error) {
     console.error('Erro ao fazer seeding:', error);
   }
