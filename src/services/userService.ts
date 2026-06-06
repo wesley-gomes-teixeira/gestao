@@ -118,6 +118,19 @@ export class UserService {
     return result.rows[0];
   }
 
+  async updateUserPassword(id: string, password: string): Promise<void> {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const result = await query(
+      `UPDATE usuarios SET senha = $2, atualizado_em = CURRENT_TIMESTAMP WHERE id = $1`,
+      [id, hashedPassword]
+    );
+
+    if (result.rowCount === 0) {
+      throw new Error('UsuÃ¡rio nÃ£o encontrado');
+    }
+  }
+
   async listUsers(): Promise<IUser[]> {
     const result = await query(
       `SELECT id, email, nome, tipo as role, ativo, criado_em, atualizado_em

@@ -57,7 +57,14 @@ export async function ensureDefaultAdmin(): Promise<void> {
   const existingAdmin = await userService.getUserByEmail(email);
 
   if (existingAdmin) {
-    console.log('Admin inicial ja existe:', email);
+    await userService.updateUser(existingAdmin.id, {
+      nome,
+      email,
+      role: UserRole.ADMIN,
+      ativo: true,
+    });
+    await userService.updateUserPassword(existingAdmin.id, password);
+    console.log('Admin inicial atualizado:', email);
     return;
   }
 

@@ -131,10 +131,19 @@ export class ItemController {
 
   async listEmprestimos(req: IAuthRequest, res: Response): Promise<void> {
     try {
+      if (!req.user) {
+        res.status(401).json({ erro: 'UsuÃ¡rio nÃ£o autenticado' });
+        return;
+      }
+
       const { usuarioId } = req.query;
+      const canListAll = [UserRole.ADMIN, UserRole.ANALISTA].includes(
+        req.user.role as UserRole
+      );
+      const targetUserId = canListAll ? (usuarioId as string) : req.user.id;
 
       const emprestimos = await itemService.listEmprestimos(
-        usuarioId as string
+        targetUserId
       );
 
       res.json(emprestimos);

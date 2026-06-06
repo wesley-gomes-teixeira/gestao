@@ -34,7 +34,6 @@ router.post(
 router.get(
   '/listar-emprestimos',
   authMiddleware,
-  roleMiddleware([UserRole.ADMIN, UserRole.ANALISTA]),
   (req: IAuthRequest, res: Response) => itemController.listEmprestimos(req, res)
 );
 

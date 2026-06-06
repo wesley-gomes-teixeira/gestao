@@ -51,8 +51,8 @@ export class UserController {
       const token = await userService.authenticate(email, password);
 
       res.json({ token });
-    } catch (error) {
-      res.status(401).json({ erro: 'Credenciais inválidas' });
+    } catch (error: any) {
+      res.status(401).json({ erro: error.message || 'Credenciais inválidas' });
     }
   }
 
