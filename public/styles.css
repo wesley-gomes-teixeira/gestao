@@ -236,6 +236,11 @@ textarea:focus {
   background: var(--primary-dark);
 }
 
+.auth-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
 .secondary-action {
   border: 1px solid var(--line);
   background: #fff;
