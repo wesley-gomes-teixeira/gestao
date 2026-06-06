@@ -272,6 +272,11 @@ function renderTickets() {
           <span class="pill ok">${Number(ticket.respostas_count)} resposta(s)</span>
         ` : ''}
       </td>
+      <td class="analyst-only ${canManageTickets() ? '' : 'hidden'}">
+        <strong>${escapeHtml(ticket.usuario_nome || 'Usuario')}</strong>
+        <br />
+        <small>${escapeHtml(ticket.usuario_email || ticket.usuario_id)}</small>
+      </td>
       <td><span class="pill status-${ticket.status}">${statusLabels[ticket.status]}</span></td>
       <td><span class="pill ${ticket.prioridade === 'alta' ? 'high' : ''}">${priorityLabels[ticket.prioridade]}</span></td>
       <td>${formatDate(ticket.criado_em)}</td>
@@ -295,7 +300,7 @@ function renderTickets() {
         </div>
       </td>
     </tr>
-  `).join('') || '<tr><td colspan="5" class="empty-state">Nenhum chamado para este filtro.</td></tr>';
+  `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum chamado para este filtro.</td></tr>';
 }
 
 function renderItems() {
@@ -527,6 +532,13 @@ async function openTicket(id) {
 
   dialogTitle.textContent = ticket.titulo;
   dialogBody.innerHTML = `
+    ${canManageTickets() ? `
+      <div class="ticket-requester">
+        <span>Solicitante</span>
+        <strong>${escapeHtml(ticket.usuario_nome || 'Usuario')}</strong>
+        <small>${escapeHtml(ticket.usuario_email || ticket.usuario_id)}</small>
+      </div>
+    ` : ''}
     <p>${escapeHtml(ticket.descricao)}</p>
     <div class="row-actions">
       <span class="pill status-${ticket.status}">${statusLabels[ticket.status]}</span>

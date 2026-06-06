@@ -23,8 +23,12 @@ export class ChamadoService {
 
   async getChamadoById(id: string): Promise<IChamado | null> {
     const result = await query(
-      `SELECT id, usuario_id, titulo, descricao, status, prioridade, criado_em, atualizado_em
-       FROM chamados WHERE id = $1`,
+      `SELECT c.id, c.usuario_id, c.titulo, c.descricao, c.status, c.prioridade,
+              c.criado_em, c.atualizado_em, u.nome as usuario_nome,
+              u.email as usuario_email
+       FROM chamados c
+       JOIN usuarios u ON u.id = c.usuario_id
+       WHERE c.id = $1`,
       [id]
     );
 
@@ -35,11 +39,13 @@ export class ChamadoService {
     const result = await query(
       `SELECT c.id, c.usuario_id, c.titulo, c.descricao, c.status, c.prioridade,
               c.criado_em, c.atualizado_em, COUNT(r.id)::int as respostas_count,
-              MAX(r.criado_em) as ultima_resposta_em
+              MAX(r.criado_em) as ultima_resposta_em,
+              u.nome as usuario_nome, u.email as usuario_email
        FROM chamados c
+       JOIN usuarios u ON u.id = c.usuario_id
        LEFT JOIN respostas_chamados r ON r.chamado_id = c.id
        WHERE c.usuario_id = $1
-       GROUP BY c.id
+       GROUP BY c.id, u.nome, u.email
        ORDER BY c.criado_em DESC`,
       [usuarioId]
     );
@@ -51,10 +57,12 @@ export class ChamadoService {
     const result = await query(
       `SELECT c.id, c.usuario_id, c.titulo, c.descricao, c.status, c.prioridade,
               c.criado_em, c.atualizado_em, COUNT(r.id)::int as respostas_count,
-              MAX(r.criado_em) as ultima_resposta_em
+              MAX(r.criado_em) as ultima_resposta_em,
+              u.nome as usuario_nome, u.email as usuario_email
        FROM chamados c
+       JOIN usuarios u ON u.id = c.usuario_id
        LEFT JOIN respostas_chamados r ON r.chamado_id = c.id
-       GROUP BY c.id
+       GROUP BY c.id, u.nome, u.email
        ORDER BY c.criado_em DESC`
     );
 

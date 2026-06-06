@@ -688,6 +688,22 @@ dialog::backdrop {
   margin: 16px 0;
 }
 
+.ticket-requester {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px 12px;
+}
+
+.ticket-requester span,
+.ticket-requester small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .response-item {
   border-left: 3px solid var(--primary);
   background: var(--surface-strong);
