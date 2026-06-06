@@ -424,6 +424,10 @@ button:disabled {
   box-shadow: none;
 }
 
+.loans-panel {
+  margin-top: 18px;
+}
+
 .panel-heading {
   display: flex;
   align-items: center;

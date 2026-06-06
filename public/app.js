@@ -302,6 +302,47 @@ function renderUsers() {
   `).join('') || '<tr><td colspan="5" class="empty-state">Nenhum usuario encontrado.</td></tr>';
 }
 
+function renderLoans() {
+  const loansTable = qs('#loansTable');
+  if (!loansTable) return;
+
+  const filter = qs('#loanFilter')?.value || 'ativos';
+  const loans = state.loans.filter((loan) => {
+    if (filter === 'ativos') return !loan.devolvido;
+    if (filter === 'devolvidos') return loan.devolvido;
+    return true;
+  });
+
+  loansTable.innerHTML = loans.map((loan) => `
+    <tr>
+      <td>
+        <strong>${escapeHtml(loan.item_nome || loan.item_id)}</strong>
+        <br />
+        <small>${escapeHtml(loan.item_id)}</small>
+      </td>
+      <td>
+        <strong>${escapeHtml(loan.usuario_nome || loan.usuario_id)}</strong>
+        <br />
+        <small>${escapeHtml(loan.usuario_email || loan.usuario_id)}</small>
+      </td>
+      <td>${Number(loan.quantidade)}</td>
+      <td><span class="pill ${loan.devolvido ? 'ok' : 'status-em_andamento'}">${loan.devolvido ? 'Devolvido' : 'Ativo'}</span></td>
+      <td>${formatDate(loan.data_emprestimo)}</td>
+      <td>
+        <div class="row-actions">
+          ${loan.devolvido ? `
+            <span class="empty-state">Sem acoes</span>
+          ` : `
+            <button class="secondary-action compact-action" type="button" data-return-loan="${loan.id}" data-return-item="${loan.item_id}">
+              Devolver
+            </button>
+          `}
+        </div>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum emprestimo encontrado.</td></tr>';
+}
+
 function stockRatio(item) {
   const total = Number(item.quantidade || 0);
   if (!total) return 0;
@@ -343,6 +384,7 @@ async function loadData() {
   renderTickets();
   renderItems();
   renderUsers();
+  renderLoans();
 }
 
 async function boot() {
@@ -771,6 +813,17 @@ async function deleteUser(id) {
   showNotice('Usuario excluido.');
 }
 
+async function returnLoan(emprestimoId, itemId) {
+  if (!emprestimoId || !itemId) return;
+
+  await api('/api/itens/devolver', {
+    method: 'POST',
+    body: JSON.stringify({ emprestimoId, itemId }),
+  });
+  await loadData();
+  showNotice('Item devolvido.');
+}
+
 async function answerTicket(id) {
   const resposta = qs('#responseText')?.value.trim();
   if (!resposta) return;
@@ -798,6 +851,7 @@ qs('#ticketForm')?.addEventListener('submit', createTicket);
 qs('#itemForm')?.addEventListener('submit', createItem);
 qs('#userForm')?.addEventListener('submit', createUser);
 qs('#ticketFilter')?.addEventListener('change', renderTickets);
+qs('#loanFilter')?.addEventListener('change', renderLoans);
 
 qs('#logoutButton')?.addEventListener('click', () => {
   localStorage.removeItem('gestao_token');
@@ -843,6 +897,7 @@ document.addEventListener('click', async (event) => {
   const deleteItemButton = target.closest('[data-delete-item]');
   const editUserButton = target.closest('[data-edit-user]');
   const deleteUserButton = target.closest('[data-delete-user]');
+  const returnLoanButton = target.closest('[data-return-loan]');
 
   try {
     if (openButton) await openTicket(openButton.dataset.openTicket);
@@ -855,6 +910,12 @@ document.addEventListener('click', async (event) => {
     if (deleteItemButton) await deleteItem(deleteItemButton.dataset.deleteItem);
     if (editUserButton) editUser(editUserButton.dataset.editUser);
     if (deleteUserButton) await deleteUser(deleteUserButton.dataset.deleteUser);
+    if (returnLoanButton) {
+      await returnLoan(
+        returnLoanButton.dataset.returnLoan,
+        returnLoanButton.dataset.returnItem
+      );
+    }
   } catch (error) {
     showNotice(error.message, 'error');
   }
